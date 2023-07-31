@@ -1,72 +1,85 @@
 ﻿
 List<Product> products = new List<Product>(); // Store products
 
-void PresentProducts() // Presents a list
+void HandleSelection(Table table ) // Handle user selections
 {
-    List<Product> sortedProducts = products.OrderBy(product => product.Price).ToList();
-
-    Table table = new Table(sortedProducts);
-
-    table.Output();
-
     Console.ForegroundColor = ConsoleColor.Blue;
 
     Console.WriteLine("To enter a new product - enter \"P\" | To search for a product - enter: \"S\" | To quit enter: \"Q\"");
 
     Console.ResetColor();
 
-    string input = Console.ReadLine();
+    CheckInput(Console.ReadLine(), table);
+}
 
-    string userInput = CheckInput(input);
+void SearchProduct(Table table) // Search Product
+{
+    Console.Write("Enter a Product Name: ");
 
-    if (userInput == "S") // Search Product
+    string inputName = Console.ReadLine();
+
+    if (string.IsNullOrEmpty(inputName))
     {
-        Console.Write("Enter a Product Name: ");
+        Console.WriteLine("You didn't enter anything.");
 
-        string inputName = Console.ReadLine();
+        HandleSelection(table);
+    }
+    else
+    {
+        table.SearchRow(inputName);
 
-        string product = CheckInput(inputName);
+        table.Output();
 
-        if (product == inputName)
-        {
-            table.SearchRow(product);
-            table.Output();
+        HandleSelection(table);
+    }
 
-            Console.ForegroundColor = ConsoleColor.Blue;
+}
 
-            Console.WriteLine("To enter a new product - enter \"P\" | To search for a product - enter: \"S\" | To quit enter: \"Q\"");
+void PresentProducts() // Presents a list
+{
+    if (products.Count == 0)
+    {
+        Console.WriteLine("No product has been created.");
 
-            Console.ResetColor();
+        UserInputs();
+    }
+    else
+    {
+        List<Product> sortedProducts = products.OrderBy(product => product.Price).ToList();
 
-            CheckInput(Console.ReadLine());
-        }
+        Table table = new Table(sortedProducts);
+
+        table.Output();
+
+        HandleSelection(table);
     }
 }
 
-string CheckInput(string input) // Check user input
+void CheckInput(string input, Table table) // Check user input
 {
     switch (input.ToUpper())
     {
         case "":
             Console.WriteLine("You didn't enter anything.");
-
-            return "";
+            HandleSelection(table);
+            return;
 
         case "Q":
 
             PresentProducts();
 
-            return "Q";
+            return;
 
-        case "S": return "S";
+        case "S": SearchProduct(table);
+            return;
 
         case "P":
 
             UserInputs();
 
-            return "P";
+            return;
 
-        default: return input;
+        default: return;
     }
 }
 
@@ -82,48 +95,54 @@ void UserInputs() // Ask for user inputs
 
         Console.Write("Enter a Category: ");
 
-        string inputCategory = Console.ReadLine();
+        string catergory = Console.ReadLine();
 
-        string catergory = CheckInput(inputCategory);
-
-        if (catergory == "")
+        if (string.IsNullOrEmpty(catergory))
         {
+            Console.WriteLine("You didn't enter anything.");
+
             continue;
         }
-        if (catergory == "Q")
+        if (catergory.ToUpper() == "Q")
         {
+            PresentProducts();
+
             break;
         }
 
         Console.Write("Enter a Product Name: ");
 
-        string inputProductName = Console.ReadLine();
+        string productName = Console.ReadLine();
 
-        string productName = CheckInput(inputProductName);
-
-        if (productName == "")
+        if (string.IsNullOrEmpty(productName))
         {
+            Console.WriteLine("You didn't enter anything.");
+
             continue;
         }
-        if (productName == "Q")
-        {
+        if (productName.ToUpper() == "Q")
+        {   
+            PresentProducts();
+
             break;
         }
         Console.Write("Enter a Price: ");
 
         string inputPrice = Console.ReadLine();
 
-        string strPrice = CheckInput(inputPrice);
-
-        if (strPrice == "")
+        if (string.IsNullOrEmpty(inputPrice))
         {
+            Console.WriteLine("You didn't enter anything.");
+
             continue;
         }
-        if (strPrice == "Q")
+        if (inputPrice.ToUpper() == "Q")
         {
+            PresentProducts();
+
             break;
         }
-        int price = Convert.ToInt32(strPrice);
+        int price = Convert.ToInt32(inputPrice);
 
         if (price != 0)
         {
@@ -164,9 +183,9 @@ class Product // Blue print of product
 
 class Table // Blue print of table
 {
-    private List<Product> products;
+    private List<Product> products; // Hold the state or data associated with the object.
 
-    private string highlightRow;
+    private string highlightRow; // Saved reference to highlight the searched item in the displayed list
 
     public Table(List<Product> products)
     {
@@ -187,13 +206,13 @@ class Table // Blue print of table
             {
                 Console.ForegroundColor = ConsoleColor.Magenta;
 
-                Console.WriteLine("| {0} | {1} | {2} |", PadRight(product.Category, 12), PadRight(product.ProductName, 12), PadLeft(product.Price.ToString(), 9));
+                Console.WriteLine("| {0} | {1} | {2} |", product.Category.PadRight(12), product.ProductName.PadRight(12), product.Price.ToString().PadLeft(9));
 
                 Console.ResetColor();
             }
             else
             {
-                Console.WriteLine("| {0} | {1} | {2} |", PadRight(product.Category, 12), PadRight(product.ProductName, 12), PadLeft(product.Price.ToString(), 9));
+                Console.WriteLine("| {0} | {1} | {2} |", product.Category.PadRight(12), product.ProductName.PadRight(12), product.Price.ToString().PadLeft(9));
             }
         }
         int sum = products.Sum(product => product.Price);
@@ -203,16 +222,8 @@ class Table // Blue print of table
         Console.WriteLine("-------------------------------------------");
 
     }
-    public void SearchRow(string userInput) // Saves the reference to highlight the searched item in the presented list
+    public void SearchRow(string userInput) //  Create reference to highlight row
     {
         highlightRow = userInput;
-    }
-    private string PadRight(string text, int width)
-    {
-        return text.PadRight(width);
-    }
-    private string PadLeft(string text, int width)
-    {
-        return text.PadLeft(width);
     }
 }
